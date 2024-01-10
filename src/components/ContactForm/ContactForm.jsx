@@ -1,60 +1,64 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'slice/contactsSlice';
+import { selectContact } from 'slice/selector';
 import css from './ContactForm.module.css';
+import { nanoid } from 'nanoid';
 
-export const ContactForm = ({ onSubmit }) => {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+export const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(selectContact);
+  const [formData, setFormData] = useState({ name: '', number: '' });
 
+  const handleChange = e => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-const handleChange = event => {
-    switch (event.target.name) {
-      case 'name':
-        setName(event.currentTarget.value);
-        break;
-      case 'number':
-        setNumber(event.currentTarget.value);
-        break;
-      default:
-        return;
+  const handleSubmit = e => {
+    e.preventDefault();
+
+    const isContactExists =
+      contacts &&
+      contacts.some(
+        contact =>
+          contact.name.toLowerCase() === formData.name.toLowerCase() ||
+          contact.number === formData.number
+      );
+
+    if (isContactExists) {
+      alert('Contact with the same name or number already exists!');
+      return;
     }
+
+    dispatch(addContact({ ...formData, id: nanoid() }));
+    setFormData({ name: '', number: '' });
   };
 
-const handleSubmit = event => {
-    event.preventDefault();
-    onSubmit({ name, number });
-    return [setName(''), setNumber('')];
-  };
-
-
-    return (
-      <>
-        <form className={css.form} onSubmit={handleSubmit}>
-          <label className={css.label}>
-            Name
-            <input
-              className={css.input}
-              type="text"
-              name="name"
-              required
-              value={name}
-              onChange={handleChange}
-            />
-          </label>
-          <label className={css.label}>
-            Number
-            <input
-              className={css.input}
-              type="tel"
-              name="number"
-              required
-              value={number}
-              onChange={handleChange}
-            ></input>
-          </label>
-          <button className={css.btn} type="submit">
-            Add contact
-          </button>
-        </form>
-      </>
-    );
-  }
+  return (
+    <form className={css.contact} onSubmit={handleSubmit}>
+      <h3>Name</h3>
+      <input
+        className={css.inpute}
+        type="text"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        required
+        placeholder="Name"
+      />
+      <h3>Number</h3>
+      <input
+        className={css.inpute}
+        type="tel"
+        name="number"
+        value={formData.number}
+        onChange={handleChange}
+        required
+        placeholder="Phone number"
+      />
+      <button className={css.add} type="submit">
+        Add contact
+      </button>
+    </form>
+  );
+};
